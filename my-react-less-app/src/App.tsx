@@ -66,7 +66,7 @@ function App() {
     setHideSortByDown(!hideSortByDown);
   }
   const getNewEmptyItem = (): ProductData => {
-    return { name: "New item name", id: products.length + 1, price: 0, creationDate: new Date(), state: "pending" };
+    return { name: "", id: products.length + 1, price: 0, creationDate: new Date(), state: "pending" };
 
   }
   const addItem = () => {
@@ -87,11 +87,16 @@ function App() {
       }
       saveToLocalStorage(PRODCUTS_KEY, nextState);
       sortBy(selectedSortByOption.sortType, nextState);
+      setSelectedItemIdx(nextState.filter(filterValidItems).findIndex(item=>item.id === newItem.id));
       return nextState;
     })
   };
 
   const sortBy = (sortType: SortBy, _products: ProductData[] = products): void => {
+    setCurrentPage(1);
+    if (selectedItemIdx >= NUMBER_OF_ITEMS_IN_PAGE) {
+      setSelectedItemIdx(0);
+    };
     if (sortType === "name") {
       _products.sort((a, b) => {
         const nameA = a.name.toUpperCase(); // ignore upper and lowercase
