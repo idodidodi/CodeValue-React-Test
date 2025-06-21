@@ -14,12 +14,16 @@ const NUMBER_OF_ITEMS_IN_PAGE = 5;
 function App() {
   const [products, setProducts] = useState<ProductData[]>([]);
   const firstInit = useRef<boolean>(null);
-  const [selectedItemIdx, setSelectedItemIdx] = useState<number>(-1);
+  const [selectedItemId, setSelectedItemId] = useState<number>(-1);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedSortByOption, setSelectedSortByOption] = useState<SortByOption>({ name: "Name", sortType: "name" });
   const [createNewItem, setCreateNewItem] = useState<boolean>(false);
   const [hideSortByDown, setHideSortByDown] = useState<boolean>(true);
 
+  const setFirstValidItemId = (products: ProductData[]): void => {
+    const firstValidItem = products.find(filterValidItems);
+    setSelectedItemId(firstValidItem ? firstValidItem.id : -1);
+  }
   useEffect(() => {
     if (firstInit.current == null) {
       let productsToSet = geProductsFromToLocalStorage(PRODCUTS_KEY);
@@ -30,7 +34,7 @@ function App() {
       }
       setProducts(() => {
         const nextState = [...productsToSet];
-        setSelectedItemIdx(nextState.findIndex(item => item.state === "approved"));
+        setFirstValidItemId(nextState);
         if (isSaveToLocalStorage) {
           saveToLocalStorage(PRODCUTS_KEY, nextState);
         }
@@ -39,29 +43,44 @@ function App() {
       );
       firstInit.current = false;
     } else {
-      if (selectedItemIdx === -1) {
-        setSelectedItemIdx(products.findIndex(item => item.state === "approved"));
+      if (selectedItemId === -1) {
+        setFirstValidItemId(products);
       }
     }
     sortBy(selectedSortByOption.sortType);
   }, [products])
 
   useEffect(() => {
-   window.addEventListener('popstate', handleUrlChange);
-   
-   return ()=>{
-     window.removeEventListener('popstate', handleUrlChange);
-   }
+    window.addEventListener('popstate', handleUrlChange);
+
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+    }
   }, [])
 
-  const handleUrlChange = ()=>{
+  const handleUrlChange = () => {
     const hash = window.location.hash;
     const hashArr = hash.split('/');
     if (hashArr[0] === "#" && hashArr[1] === "products" && !isNaN(Number(hashArr[2]))) {
-      setSelectedItemIdx(products.filter(filterValidItems).findIndex(item=>item.id === Number(hashArr[2])));
+      const requestedItem: ProductData | undefined = products.find(item => item.id === Number(hashArr[2]));
+      if (requestedItem?.state === "approved") {
+        setSelectedItemId(Number(hashArr[2]))
+      }
     }
   }
-  const showProdcutDetails = (): boolean => createNewItem || (selectedItemIdx > -1 && products[selectedItemIdx]?.state !== "deleted");
+  const showProdcutDetails = (): boolean => {
+    if (createNewItem) {
+      return true;
+    }
+    if (selectedItemId > -1) {
+      const foundItem = products.find(findItemById);
+      if (foundItem) {
+        return foundItem.state !== "deleted";
+      }
+    }
+    return false;
+  }
+
   const toggleHide = () => {
     setHideSortByDown(!hideSortByDown);
   }
@@ -87,15 +106,16 @@ function App() {
       }
       saveToLocalStorage(PRODCUTS_KEY, nextState);
       sortBy(selectedSortByOption.sortType, nextState);
-      setSelectedItemIdx(nextState.filter(filterValidItems).findIndex(item=>item.id === newItem.id));
+      setSelectedItemId(newItem.id);
       return nextState;
     })
   };
 
   const sortBy = (sortType: SortBy, _products: ProductData[] = products): void => {
     setCurrentPage(1);
+    const selectedItemIdx = _products.findIndex(findItemById);
     if (selectedItemIdx >= NUMBER_OF_ITEMS_IN_PAGE) {
-      setSelectedItemIdx(0);
+      setFirstValidItemId(_products);
     };
     if (sortType === "name") {
       _products.sort((a, b) => {
@@ -137,7 +157,7 @@ function App() {
   }
   const arrowLeft = "<";
   const arrowRight = ">";
-  const filterValidItems = (item:ProductData):boolean=>item.state === "approved";
+  const filterValidItems = (item: ProductData): boolean => item.state === "approved";
   const getMaxNumberOfPages = (): number => {
     const numOfItems = products.filter(filterValidItems).length;
     return Math.ceil(numOfItems / NUMBER_OF_ITEMS_IN_PAGE);
@@ -150,6 +170,8 @@ function App() {
       setCurrentPage(maxPage);
     }
   }
+
+  const findItemById = (item:ProductData):boolean=>item.id === selectedItemId;
   return (
     <div className='store-container' onClick={() => {
       setHideSortByDown(true);
@@ -186,7 +208,7 @@ function App() {
                 item={item}
                 key={item.id}
                 onSelect={() => {
-                  setSelectedItemIdx(products.findIndex(_item => _item.id === item.id));
+                  setSelectedItemId(item.id);
                 }}
                 onDelete={(e: MouseEvent) => {
                   const _idx = products.findIndex(_item => _item.id === item.id);
@@ -195,10 +217,14 @@ function App() {
                     const nextState = [...products];
                     saveToLocalStorage(PRODCUTS_KEY, nextState);
                     updateCurrentPage(nextState);
+                    if (!createNewItem && selectedItemId === item.id) {
+                      setFirstValidItemId(nextState);
+                    }
                     setProducts(nextState);
-                  }
-                  if (!createNewItem) {
-                    setSelectedItemIdx(-1);
+                  } else {
+                    if (!createNewItem && selectedItemId === item.id) {
+                      setFirstValidItemId(products);
+                    }
                   }
                   e.stopPropagation();
 
@@ -206,7 +232,7 @@ function App() {
               />)
           }</div>
           <div className="item-description">
-            {showProdcutDetails() && <ProductDetails item={createNewItem ? getNewEmptyItem() : products[selectedItemIdx]} saveItem={saveItem} />}
+            {showProdcutDetails() && <ProductDetails item={createNewItem ? getNewEmptyItem() : products.find(findItemById)!} saveItem={saveItem} />}
           </div>
         </div>
         <div className="pagination">
