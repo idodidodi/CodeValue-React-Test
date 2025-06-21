@@ -48,6 +48,12 @@
 .product-details-container {
     margin-left: 10px;
     margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+
+    .body {
+        height: 490px;
+    }
 
     .product-details-title {
         padding: 10px 20px;
@@ -65,6 +71,15 @@
             width: 90%;
             padding: 5px 0 5px 5px;
             margin-top: 6px;
+            min-height: 18px;
+        }
+    }
+
+    .add-button-wrapper {
+        display: flex;
+        justify-content: end;
+        .save-button {
+            margin-right: 10px;
         }
     }
 }
