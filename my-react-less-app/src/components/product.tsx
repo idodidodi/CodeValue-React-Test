@@ -99,9 +99,6 @@ const TtileAndDataBox = (props: { title: string; text: string | number, onChange
     return (
         <div className='box-wrapper'>
             <div className="title">{props.title}</div>
-            {/* <div className="bordered-box">
-                {props.text}
-            </div> */}
             <div className="input-bordered-box">
                 <input type='text' value={val} onChange={_onChangeInput}></input>
             </div>

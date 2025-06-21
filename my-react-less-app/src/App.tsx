@@ -1,15 +1,18 @@
 import './App.less'
 
 import { useState, useEffect, type MouseEvent, useRef } from 'react'
-import type { ProductData } from './models'
+import type { ProductData, SortByOption } from './models'
 import { dummyProducts } from './dummy-data'
 import { Product, ProductDetails } from './components/product';
+import { SortByDropDown } from './components/sort-by';
 
 function App() {
   const [products, setProducts] = useState<ProductData[]>([]);
   const firstInit = useRef<boolean>(null);
   const [selectedItemIdx, setSelectedItemIdx] = useState<number>(-1);
+  const [selectedSortByOption, setSelectedSortByOption] = useState<SortByOption>({ name: "Name", sortType: "name" });
   const [createNewItem, setCreateNewItem] = useState<boolean>(false);
+  const [hideSortByDown, setHideSortByDown] = useState<boolean>(true);
 
   useEffect(() => {
     if (firstInit.current == null) {
@@ -28,7 +31,9 @@ function App() {
   }, [products])
 
   const showProdcutDetails = (): boolean => createNewItem || (selectedItemIdx > -1 && products[selectedItemIdx]?.state !== "deleted");
-
+const toggleHide = ()=>{
+  setHideSortByDown(!hideSortByDown);
+}
   const getNewEmptyItem = (): ProductData => {
     return { name: "New item name", id: products.length + 1, price: 0, creationDate: new Date(), state: "pending" };
 
@@ -40,9 +45,9 @@ function App() {
   const saveItem = (newItem: ProductData): void => {
     setProducts(prev => {
       const nextState = [...prev];
-      const idx = nextState.findIndex(item=>item.id === newItem.id);
+      const idx = nextState.findIndex(item => item.id === newItem.id);
       if (idx === -1) {
-        nextState.push({...newItem, state:"approved"});
+        nextState.push({ ...newItem, state: "approved" });
         setCreateNewItem(false);
       } else {
         nextState[idx].description = newItem.description;
@@ -51,10 +56,23 @@ function App() {
       }
       return nextState;
     })
+  };
 
+  const onClickSortBy = (sortTypeOption: SortByOption): void => {
+    setSelectedSortByOption(sortTypeOption);
+    if (sortTypeOption.sortType === "name") {
+      products.sort();
+    } else {
+      products.sort((a, b) => {
+        if (a.creationDate === b.creationDate) return 0;
+        return a.creationDate < b.creationDate ? -1 : 1
+      })
+    }
   }
   return (
-    <div className='store-container'>
+    <div className='store-container' onClick={() => {
+      setHideSortByDown(true);
+    }}>
       <div className="header">MY STORE</div>
       <div className="body">
         <div className="actions">
@@ -66,13 +84,22 @@ function App() {
             <div className="maginifying-glass">Add maginifying glass</div>
             <input type="text" title='Search producs' defaultValue="Search producs" />
           </div>
-          <div className="sort by">Sort BY</div>
+          <div className="sort-by">
+            <div className="sort-by-header">Sort by</div>
+            <SortByDropDown
+              hide={hideSortByDown}
+              updateHide={toggleHide}
+              selectedOption={selectedSortByOption}
+              onClickOption={onClickSortBy}
+              options={[{ name: "Name", sortType: "name" }, { name: "Recently added", sortType: "recent" }]}
+            />
+          </div>
         </div>
         <div className="products">
           <div className="list">{
             products.
               filter(item => item.state === "approved").
-              map((item, idx) => <
+              map((item) => <
                 Product
                 item={item}
                 key={item.id}

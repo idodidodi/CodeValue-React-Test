@@ -15,6 +15,42 @@
             width: 400px;
             justify-content: space-between;
             margin: 20px 0;
+
+            .sort-by {
+                .sort-by-header {
+                    text-align: center;
+                    padding-bottom: 2px;
+                }
+
+                .sort-by-wrapper {
+
+                    .header-wraepper {
+                        display: flex;
+                        border: 1px solid black;
+                        padding: 5px 10px;
+                        width: 100px;
+                        justify-content: space-around;
+                        cursor: pointer;
+
+                        .open-dropdown {
+                            // cursor: pointer;
+                        }
+                    }
+
+                    .options {
+                        padding: 10px 0 0 12px;
+                        position: absolute;
+
+                        .option-item {
+                            border: 1px solid;
+                            padding: 10px 0 7px 12px;
+                            margin-left: -12px;
+                            width: 108px;
+                            margin-top: -10px;
+                        }
+                    }
+                }
+            }
         }
 
         .products {
@@ -34,4 +70,5 @@
             }
         }
     }
+
 }

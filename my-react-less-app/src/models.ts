@@ -1,4 +1,7 @@
 type ProductState = 'approved' | 'pending' | 'deleted'; 
+
+export type SortBy = "recent" | "name"
+
 export interface ProductData {
     id: number;
     name: string;
@@ -6,4 +9,9 @@ export interface ProductData {
     creationDate: Date;
     state: ProductState;
     description?: string;
+}
+
+export interface SortByOption {
+    name: string;
+    sortType: SortBy;
 }
