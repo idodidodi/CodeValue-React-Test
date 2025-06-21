@@ -144,14 +144,14 @@ function App() {
   }
 
   const filterProducts = (e: any): void => {
-    setProducts(prev => {
+    setProducts(_ => {
       const inputText = e.target.value;
       if (inputText.length === 0) {
         // implement bring full list from local storage
         return geProductsFromToLocalStorage(PRODCUTS_KEY);
       }
 
-      const nextState = [...prev.filter(item => (item.description && item.description.toLowerCase().includes(inputText)) || item.name.toLowerCase().includes(inputText))];
+      const nextState = [...geProductsFromToLocalStorage(PRODCUTS_KEY).filter(item => (item.description && item.description.toLowerCase().includes(inputText)) || item.name.toLowerCase().includes(inputText))];
       return [...nextState];
     })
   }
