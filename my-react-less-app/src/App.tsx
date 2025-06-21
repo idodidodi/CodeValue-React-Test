@@ -5,7 +5,9 @@ import type { ProductData, SortBy, SortByOption } from './models'
 import { dummyProducts } from './dummy-data'
 import { Product, ProductDetails } from './components/product';
 import { SortByDropDown } from './components/sort-by';
+import { geProductsFromToLocalStorage, saveToLocalStorage } from './localstorage-util';
 
+const PRODCUTS_KEY = "products";
 function App() {
   const [products, setProducts] = useState<ProductData[]>([]);
   const firstInit = useRef<boolean>(null);
@@ -16,9 +18,18 @@ function App() {
 
   useEffect(() => {
     if (firstInit.current == null) {
+      let productsToSet = geProductsFromToLocalStorage(PRODCUTS_KEY);
+      let isSaveToLocalStorage = false;
+      if (productsToSet.length === 0) {
+        productsToSet = dummyProducts;
+        isSaveToLocalStorage = true;
+      }
       setProducts(() => {
-        const nextState = [...dummyProducts];
+        const nextState = [...productsToSet];
         setSelectedItemIdx(nextState.findIndex(item => item.state === "approved"));
+        if (isSaveToLocalStorage) {
+          saveToLocalStorage(PRODCUTS_KEY, nextState);
+        }
         return nextState;
       }
       );
@@ -55,6 +66,7 @@ function App() {
         nextState[idx].price = newItem.price;
         nextState[idx].name = newItem.name;
       }
+      saveToLocalStorage(PRODCUTS_KEY, nextState);
       sortBy(selectedSortByOption.sortType, nextState);
       return nextState;
     })
@@ -78,7 +90,7 @@ function App() {
     } else {
       _products.sort((a, b) => {
         if (a.creationDate === b.creationDate) return 0;
-        return a.creationDate < b.creationDate ? -1 : 1
+        return a.creationDate > b.creationDate ? -1 : 1
       })
     }
   }
@@ -87,15 +99,15 @@ function App() {
     sortBy(sortTypeOption.sortType, _products);
   }
 
-  const filterProducts = (e: any):void=>{
-    setProducts(prev=>{
+  const filterProducts = (e: any): void => {
+    setProducts(prev => {
       const inputText = e.target.value;
       if (inputText.length === 0) {
         // implement bring full list from local storage
-        return prev;
+        return geProductsFromToLocalStorage(PRODCUTS_KEY);
       }
 
-      const nextState = [...prev.filter(item=> (item.description && item.description.toLowerCase().includes(inputText)) || item.name.toLowerCase().includes(inputText))];
+      const nextState = [...prev.filter(item => (item.description && item.description.toLowerCase().includes(inputText)) || item.name.toLowerCase().includes(inputText))];
       return [...nextState];
     })
   }
@@ -112,7 +124,7 @@ function App() {
           >+Add</button>
           <div className="search-products">
             <div className="maginifying-glass">&#128269;</div>
-            <input type="text" title='Search products' placeholder="Search products" className='input-search-products' onChange={filterProducts}/>
+            <input type="text" title='Search products' placeholder="Search products" className='input-search-products' onChange={filterProducts} />
           </div>
           <div className="sort-by">
             <div className="sort-by-header">Sort by</div>
@@ -140,7 +152,9 @@ function App() {
                   const _idx = products.findIndex(_item => _item.id === item.id);
                   if (_idx > - 1) {
                     products[_idx].state = "deleted";
-                    setProducts([...products]);
+                    const nextState = [...products];
+                    saveToLocalStorage(PRODCUTS_KEY, nextState);
+                    setProducts(nextState);
                   }
                   if (!createNewItem) {
                     setSelectedItemIdx(-1);
