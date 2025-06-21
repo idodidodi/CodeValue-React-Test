@@ -208,6 +208,7 @@ function App() {
                 item={item}
                 key={item.id}
                 onSelect={() => {
+                  setCreateNewItem(false);
                   setSelectedItemId(item.id);
                 }}
                 onDelete={(e: MouseEvent) => {
