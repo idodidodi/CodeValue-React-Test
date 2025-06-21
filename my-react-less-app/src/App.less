@@ -1,0 +1,36 @@
+@import url("index.less");
+
+.store-container {
+    .header {
+        background-color: aquamarine;
+        height: 40px;
+        font-size: large;
+        .flex-centered;
+        border-bottom: 2px black solid;
+    }
+
+    .body {
+        .actions {
+            display: flex;
+            width: 400px;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+
+        .products {
+            display: flex;
+
+            .item-description {
+                margin: 20px 0px 0px 50px;
+                width: 300px;
+                height: 550px;
+                border: 2px solid black;
+            }
+
+            .list {
+                height: 580px;
+                overflow: hidden;
+            }
+        }
+    }
+}

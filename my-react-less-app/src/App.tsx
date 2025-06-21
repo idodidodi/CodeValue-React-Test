@@ -1,56 +1,71 @@
 import './App.less'
 
-import { useState } from 'react'
-import type { Product } from './models'
+import { useState, useEffect, useRef, type MouseEvent } from 'react'
+import type { ProductData } from './models'
+import { dummyProducts } from './dummy-data'
+import { Product, ProductDetails } from './components/product';
 
-const dummyProducts: Product[] = [
-  {
-    id: 1,
-    name: "Chair",
-    price: 100,
-    creationDate: new Date("December 17, 1995 03:24:00"),
-    description: "Something you sit on"
-  },
-  {
-    id: 2,
-    name: "Table",
-    price: 110,
-    creationDate: new Date("December 17, 1996 03:24:00"),
-    description: "Something you put things on"
-  },
-  {
-    id: 3,
-    name: "Stool",
-    price: 50,
-    creationDate: new Date("December 17, 1997 03:24:00"),
-    description: "Something you sit on"
-  },
-  {
-    id: 4,
-    name: "Toilet",
-    price: 150,
-    creationDate: new Date("December 17, 1998 03:24:00"),
-    description: "Something you use everyday for your natural needs"
-  },
-  {
-    id: 5,
-    name: "Tap",
-    price: 200,
-    creationDate: new Date("December 17, 1999 03:24:00"),
-    description: "Something that springs water"
-  },
-];
 function App() {
-  // const [count, setCount] = useState(0)
+  const [products, setProducts] = useState<ProductData[]>([]);
+  const productsRef = useRef<ProductData[]>(null);
+  const [selectedItemIdx, setSelectedItemIdx] = useState<number>(-1);
+
+  const updateProducts = ():void=>{
+    setProducts(()=>{
+      if (!productsRef.current) return [];
+      const nextState =  productsRef.current.filter(item => item.state === "approved");
+      setSelectedItemIdx(nextState.findIndex(item=>item.state === "approved"));
+      return nextState;
+    })
+  }
+  useEffect(() => {
+    if (productsRef.current == null) {
+      productsRef.current = [...dummyProducts];
+    };
+    updateProducts();
+  }, [productsRef.current])
+
+  const showProdcutDetails = (): boolean => selectedItemIdx > -1 && products[selectedItemIdx].state !== "deleted";
+  // const findItemIdx = (item:ProductData, id:number):boolean=>item.id === id;
+  // const getIdx = (id: number):number=> products.findIndex((_item)=>findItemIdx(_item, id));
+  console.log(products)
 
   return (
     <div className='store-container'>
-      <div className="header"></div>
+      <div className="header">MY STORE</div>
       <div className="body">
-        <div className="actions"></div>
+        <div className="actions">
+          <button className="add">+Add</button>
+          <div className="search-products">
+            <div className="maginifying-glass">Add maginifying glass</div>
+            <input type="text" title='Search producs' defaultValue="Search producs" />
+          </div>
+          <div className="sort by">Sort BY</div>
+        </div>
         <div className="products">
-          <div className="list"></div>
-          <div className="item-description"></div>
+          <div className="list">{
+            products.map((item, idx) => <
+              Product 
+              item={item} 
+              key={item.id}
+              onSelect={()=>{
+                setSelectedItemIdx(idx);
+              }}
+              onDelete={(e:MouseEvent)=>{
+                if (productsRef.current) {
+                  const _idx = productsRef.current.findIndex(_item=>_item.id === item.id);
+                  if (_idx > -1) {
+                    productsRef.current[_idx].state = "deleted";
+                  }
+                }
+                setSelectedItemIdx(-1);
+                e.stopPropagation();
+              }}
+              />)
+          }</div>
+          <div className="item-description">
+            {showProdcutDetails() && <ProductDetails item={products[selectedItemIdx]} />}
+          </div>
         </div>
         <div className="pagination"></div>
 
