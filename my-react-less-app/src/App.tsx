@@ -87,6 +87,18 @@ function App() {
     sortBy(sortTypeOption.sortType, _products);
   }
 
+  const filterProducts = (e: any):void=>{
+    setProducts(prev=>{
+      const inputText = e.target.value;
+      if (inputText.length === 0) {
+        // implement bring full list from local storage
+        return prev;
+      }
+
+      const nextState = [...prev.filter(item=> (item.description && item.description.toLowerCase().includes(inputText)) || item.name.toLowerCase().includes(inputText))];
+      return [...nextState];
+    })
+  }
   return (
     <div className='store-container' onClick={() => {
       setHideSortByDown(true);
@@ -100,7 +112,7 @@ function App() {
           >+Add</button>
           <div className="search-products">
             <div className="maginifying-glass">&#128269;</div>
-            <input type="text" title='Search products' defaultValue="Search products" className='input-search-products'/>
+            <input type="text" title='Search products' placeholder="Search products" className='input-search-products' onChange={filterProducts}/>
           </div>
           <div className="sort-by">
             <div className="sort-by-header">Sort by</div>

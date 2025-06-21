@@ -27,6 +27,9 @@ export const Product = (props: { item: ProductData, onSelect: () => void, onDele
 
 export const ProductDetails = (props: { item: ProductData, saveItem: (item: ProductData) => void }): JSX.Element => {
     const { item, saveItem } = props;
+    if (item == null) {
+        return <></>
+    }
     const { name, description, price } = item;
     const [savedItem, setSavedItem] = useState<ProductData>({ ...item });
     const validateSavedItem = (savedItem.description == null || savedItem.description.length <= 200)
