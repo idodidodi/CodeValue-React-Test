@@ -6,7 +6,6 @@ export const saveToLocalStorage = (key: string, items: any[]):void=>{
 export const geProductsFromToLocalStorage = (key: string):ProductData[]=>{
     const items = localStorage.getItem(key);
     if (items) {
-        console.log(JSON.parse(items));
         return JSON.parse(items);
     }
 

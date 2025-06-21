@@ -46,6 +46,23 @@ function App() {
     sortBy(selectedSortByOption.sortType);
   }, [products])
 
+  useEffect(() => {
+   window.addEventListener('popstate', handleUrlChange);
+   
+   return ()=>{
+     window.removeEventListener('popstate', handleUrlChange);
+   }
+  }, [])
+
+  const handleUrlChange = ()=>{
+    const hash = window.location.hash;
+    console.log(hash);
+    const hashArr = hash.split('/');
+    console.log(hashArr);
+    if (hashArr[0] === "#" && hashArr[1] === "products" && !isNaN(Number(hashArr[2]))) {
+      setSelectedItemIdx(products.filter(filterValidItems).findIndex(item=>item.id === Number(hashArr[2])));
+    }
+  }
   const showProdcutDetails = (): boolean => createNewItem || (selectedItemIdx > -1 && products[selectedItemIdx]?.state !== "deleted");
   const toggleHide = () => {
     setHideSortByDown(!hideSortByDown);
@@ -117,14 +134,14 @@ function App() {
   }
   const arrowLeft = "<";
   const arrowRight = ">";
-
+  const filterValidItems = (item:ProductData):boolean=>item.state === "approved";
   const getMaxNumberOfPages = (): number => {
-    const numOfItems = products.filter(item => item.state === "approved").length;
+    const numOfItems = products.filter(filterValidItems).length;
     return Math.ceil(numOfItems / NUMBER_OF_ITEMS_IN_PAGE);
   }
 
   const updateCurrentPage = (products: ProductData[]): void => {
-    const validItems = products.filter(item => item.state === "approved");
+    const validItems = products.filter(filterValidItems);
     const maxPage = Math.ceil(validItems.length / NUMBER_OF_ITEMS_IN_PAGE);
     if (currentPage > maxPage) {
       setCurrentPage(maxPage);
@@ -159,7 +176,7 @@ function App() {
         <div className="products">
           <div className="list">{
             products.
-              filter(item => item.state === "approved").
+              filter(filterValidItems).
               slice((currentPage - 1) * NUMBER_OF_ITEMS_IN_PAGE, NUMBER_OF_ITEMS_IN_PAGE + ((currentPage - 1) * NUMBER_OF_ITEMS_IN_PAGE)).
               map((item) => <
                 Product
