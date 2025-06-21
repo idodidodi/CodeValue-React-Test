@@ -1,5 +1,7 @@
 import './App.less'
 
+import classNames from 'classnames';
+
 import { useState, useEffect, type MouseEvent, useRef } from 'react'
 import type { ProductData, SortBy, SortByOption } from './models'
 import { dummyProducts } from './dummy-data'
@@ -8,10 +10,12 @@ import { SortByDropDown } from './components/sort-by';
 import { geProductsFromToLocalStorage, saveToLocalStorage } from './localstorage-util';
 
 const PRODCUTS_KEY = "products";
+const NUMBER_OF_ITEMS_IN_PAGE = 5;
 function App() {
   const [products, setProducts] = useState<ProductData[]>([]);
   const firstInit = useRef<boolean>(null);
   const [selectedItemIdx, setSelectedItemIdx] = useState<number>(-1);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedSortByOption, setSelectedSortByOption] = useState<SortByOption>({ name: "Name", sortType: "name" });
   const [createNewItem, setCreateNewItem] = useState<boolean>(false);
   const [hideSortByDown, setHideSortByDown] = useState<boolean>(true);
@@ -111,6 +115,21 @@ function App() {
       return [...nextState];
     })
   }
+  const arrowLeft = "<";
+  const arrowRight = ">";
+
+  const getMaxNumberOfPages = (): number => {
+    const numOfItems = products.filter(item => item.state === "approved").length;
+    return Math.ceil(numOfItems / NUMBER_OF_ITEMS_IN_PAGE);
+  }
+
+  const updateCurrentPage = (products: ProductData[]): void => {
+    const validItems = products.filter(item => item.state === "approved");
+    const maxPage = Math.ceil(validItems.length / NUMBER_OF_ITEMS_IN_PAGE);
+    if (currentPage > maxPage) {
+      setCurrentPage(maxPage);
+    }
+  }
   return (
     <div className='store-container' onClick={() => {
       setHideSortByDown(true);
@@ -141,6 +160,7 @@ function App() {
           <div className="list">{
             products.
               filter(item => item.state === "approved").
+              slice((currentPage - 1) * NUMBER_OF_ITEMS_IN_PAGE, NUMBER_OF_ITEMS_IN_PAGE + ((currentPage - 1) * NUMBER_OF_ITEMS_IN_PAGE)).
               map((item) => <
                 Product
                 item={item}
@@ -154,6 +174,7 @@ function App() {
                     products[_idx].state = "deleted";
                     const nextState = [...products];
                     saveToLocalStorage(PRODCUTS_KEY, nextState);
+                    updateCurrentPage(nextState);
                     setProducts(nextState);
                   }
                   if (!createNewItem) {
@@ -168,7 +189,16 @@ function App() {
             {showProdcutDetails() && <ProductDetails item={createNewItem ? getNewEmptyItem() : products[selectedItemIdx]} saveItem={saveItem} />}
           </div>
         </div>
-        <div className="pagination"></div>
+        <div className="pagination">
+          <div className={classNames("prev pag-item", { hide: currentPage === 1 })} onClick={() => {
+            setCurrentPage(currentPage - 1);
+          }}>{`${arrowLeft}   Prev Page`}</div>
+          <div className="page-position pag-item">{`${currentPage} of ${getMaxNumberOfPages()}`}</div>
+          <div className={classNames("next pag-item", { hide: currentPage === getMaxNumberOfPages() })} onClick={() => {
+            setCurrentPage(currentPage + 1);
+          }}>{`Next Page   ${arrowRight}`}</div>
+
+        </div>
 
       </div>
       <div className="footer"></div>

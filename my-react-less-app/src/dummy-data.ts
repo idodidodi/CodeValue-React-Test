@@ -38,6 +38,6 @@ export const dummyProducts: ProductData[] = [
     name: "Tap",
     price: 200,
     creationDate: new Date("December 17, 1999 03:24:00"),
-    state:"deleted"
+    state:"approved"
   },
 ];
