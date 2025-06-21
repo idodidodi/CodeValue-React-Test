@@ -1,7 +1,7 @@
 import './App.less'
 
 import { useState, useEffect, type MouseEvent, useRef } from 'react'
-import type { ProductData, SortByOption } from './models'
+import type { ProductData, SortBy, SortByOption } from './models'
 import { dummyProducts } from './dummy-data'
 import { Product, ProductDetails } from './components/product';
 import { SortByDropDown } from './components/sort-by';
@@ -28,12 +28,13 @@ function App() {
         setSelectedItemIdx(products.findIndex(item => item.state === "approved"));
       }
     }
+    sortBy(selectedSortByOption.sortType);
   }, [products])
 
   const showProdcutDetails = (): boolean => createNewItem || (selectedItemIdx > -1 && products[selectedItemIdx]?.state !== "deleted");
-const toggleHide = ()=>{
-  setHideSortByDown(!hideSortByDown);
-}
+  const toggleHide = () => {
+    setHideSortByDown(!hideSortByDown);
+  }
   const getNewEmptyItem = (): ProductData => {
     return { name: "New item name", id: products.length + 1, price: 0, creationDate: new Date(), state: "pending" };
 
@@ -54,21 +55,38 @@ const toggleHide = ()=>{
         nextState[idx].price = newItem.price;
         nextState[idx].name = newItem.name;
       }
+      sortBy(selectedSortByOption.sortType, nextState);
       return nextState;
     })
   };
 
-  const onClickSortBy = (sortTypeOption: SortByOption): void => {
-    setSelectedSortByOption(sortTypeOption);
-    if (sortTypeOption.sortType === "name") {
-      products.sort();
+  const sortBy = (sortType: SortBy, _products: ProductData[] = products): void => {
+    if (sortType === "name") {
+      _products.sort((a, b) => {
+        const nameA = a.name.toUpperCase(); // ignore upper and lowercase
+        const nameB = b.name.toUpperCase(); // ignore upper and lowercase
+        if (nameA < nameB) {
+          return -1;
+        }
+        if (nameA > nameB) {
+          return 1;
+        }
+
+        // names must be equal
+        return 0;
+      });
     } else {
-      products.sort((a, b) => {
+      _products.sort((a, b) => {
         if (a.creationDate === b.creationDate) return 0;
         return a.creationDate < b.creationDate ? -1 : 1
       })
     }
   }
+  const sortProdcuts = (sortTypeOption: SortByOption, _products: ProductData[] = products): void => {
+    setSelectedSortByOption(sortTypeOption);
+    sortBy(sortTypeOption.sortType, _products);
+  }
+
   return (
     <div className='store-container' onClick={() => {
       setHideSortByDown(true);
@@ -90,7 +108,7 @@ const toggleHide = ()=>{
               hide={hideSortByDown}
               updateHide={toggleHide}
               selectedOption={selectedSortByOption}
-              onClickOption={onClickSortBy}
+              onClickOption={sortProdcuts}
               options={[{ name: "Name", sortType: "name" }, { name: "Recently added", sortType: "recent" }]}
             />
           </div>

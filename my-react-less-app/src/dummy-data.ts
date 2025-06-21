@@ -5,7 +5,7 @@ export const dummyProducts: ProductData[] = [
     id: 1,
     name: "Chair",
     price: 100,
-    creationDate: new Date("December 17, 1995 03:24:00"),
+    creationDate: new Date("December 17, 2000 03:24:00"),
     state:"approved",
     description: "Something that you sit on"
 },
@@ -14,7 +14,7 @@ export const dummyProducts: ProductData[] = [
     name: "Table",
     price: 110,
     creationDate: new Date("December 17, 1996 03:24:00"),
-    state:"deleted",
+    state:"approved",
     description: "Something you put things on"
 },
 {
@@ -38,6 +38,6 @@ export const dummyProducts: ProductData[] = [
     name: "Tap",
     price: 200,
     creationDate: new Date("December 17, 1999 03:24:00"),
-    state:"approved"
+    state:"deleted"
   },
 ];
