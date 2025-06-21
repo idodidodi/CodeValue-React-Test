@@ -1,29 +1,25 @@
 import './App.less'
 
-import { useState, useEffect, useRef, type MouseEvent } from 'react'
+import { useState, useEffect, type MouseEvent } from 'react'
 import type { ProductData } from './models'
 import { dummyProducts } from './dummy-data'
 import { Product, ProductDetails } from './components/product';
 
 function App() {
   const [products, setProducts] = useState<ProductData[]>([]);
-  const productsRef = useRef<ProductData[]>(null);
   const [selectedItemIdx, setSelectedItemIdx] = useState<number>(-1);
 
-  const updateProducts = ():void=>{
-    setProducts(()=>{
-      if (!productsRef.current) return [];
-      const nextState =  productsRef.current.filter(item => item.state === "approved");
-      setSelectedItemIdx(nextState.findIndex(item=>item.state === "approved"));
-      return nextState;
-    })
-  }
+  // const updateProducts = ():void=>{
+  //   setProducts(()=>{
+  //     if (products.length === 0) return [];
+  //     const nextState =  products.current.filter(item => item.state === "approved");
+  //     setSelectedItemIdx(nextState.findIndex(item=>item.state === "approved"));
+  //     return nextState;
+  //   })
+  // }
   useEffect(() => {
-    if (productsRef.current == null) {
-      productsRef.current = [...dummyProducts];
-    };
-    updateProducts();
-  }, [productsRef.current])
+    setProducts([...dummyProducts]);
+  }, [])
 
   const showProdcutDetails = (): boolean => selectedItemIdx > -1 && products[selectedItemIdx].state !== "deleted";
   // const findItemIdx = (item:ProductData, id:number):boolean=>item.id === id;
@@ -44,24 +40,26 @@ function App() {
         </div>
         <div className="products">
           <div className="list">{
-            products.map((item, idx) => <
-              Product 
-              item={item} 
+            products.
+            filter(item=>item.state === "approved").
+            map((item, idx) => <
+              Product
+              item={item}
               key={item.id}
-              onSelect={()=>{
+              onSelect={() => {
                 setSelectedItemIdx(idx);
               }}
-              onDelete={(e:MouseEvent)=>{
-                if (productsRef.current) {
-                  const _idx = productsRef.current.findIndex(_item=>_item.id === item.id);
-                  if (_idx > -1) {
-                    productsRef.current[_idx].state = "deleted";
-                  }
+              onDelete={(e: MouseEvent) => {
+                const _idx = products.findIndex(_item => _item.id === item.id);
+                if (_idx > - 1) {
+                  products[_idx].state = "deleted";
+                  setProducts([...products]);
                 }
                 setSelectedItemIdx(-1);
                 e.stopPropagation();
+
               }}
-              />)
+            />)
           }</div>
           <div className="item-description">
             {showProdcutDetails() && <ProductDetails item={products[selectedItemIdx]} />}
