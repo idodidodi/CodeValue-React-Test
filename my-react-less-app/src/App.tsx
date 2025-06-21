@@ -56,9 +56,7 @@ function App() {
 
   const handleUrlChange = ()=>{
     const hash = window.location.hash;
-    console.log(hash);
     const hashArr = hash.split('/');
-    console.log(hashArr);
     if (hashArr[0] === "#" && hashArr[1] === "products" && !isNaN(Number(hashArr[2]))) {
       setSelectedItemIdx(products.filter(filterValidItems).findIndex(item=>item.id === Number(hashArr[2])));
     }

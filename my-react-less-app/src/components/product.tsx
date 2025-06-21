@@ -69,7 +69,6 @@ export const ProductDetails = (props: { item: ProductData, saveItem: (item: Prod
                 <TtileAndDataBox title='Price' text={price} onChange={(e) => {
                     const input: string = e.target.value;
                     if (isNaN(Number(input))) {
-                        console.error({ input }, "is not a number")
                         return;
                     }
                     setSavedItem(prev => {
