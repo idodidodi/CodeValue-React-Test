@@ -12,14 +12,40 @@
     .body {
         .actions {
             display: flex;
-            width: 400px;
+            width: 700px;
             justify-content: space-between;
             margin: 20px 0;
 
+            button.add {
+                height: 29px;
+                margin-top: 19px;
+            }
+
+            .search-products {
+                margin-top: 19px;
+
+                .maginifying-glass {
+                    position: absolute;
+                    margin-left: 7px;
+                }
+
+                input.input-search-products {
+                    padding: 5px 0 5px 30px;
+                }
+            }
+
             .sort-by {
+                display: flex;
+                width: 250px;
+                margin-top: 19px;
+
                 .sort-by-header {
                     text-align: center;
                     padding-bottom: 2px;
+                    width: 80px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
                 }
 
                 .sort-by-wrapper {

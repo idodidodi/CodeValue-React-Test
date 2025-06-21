@@ -99,8 +99,8 @@ function App() {
             onClick={addItem}
           >+Add</button>
           <div className="search-products">
-            <div className="maginifying-glass">Add maginifying glass</div>
-            <input type="text" title='Search producs' defaultValue="Search producs" />
+            <div className="maginifying-glass">&#128269;</div>
+            <input type="text" title='Search products' defaultValue="Search products" className='input-search-products'/>
           </div>
           <div className="sort-by">
             <div className="sort-by-header">Sort by</div>
