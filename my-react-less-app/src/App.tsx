@@ -7,13 +7,14 @@ import type { ProductData, SortBy, SortByOption } from './models'
 import { dummyProducts } from './dummy-data'
 import { Product, ProductDetails } from './components/product';
 import { SortByDropDown } from './components/sort-by';
-import { geProductsFromToLocalStorage, saveToLocalStorage } from './localstorage-util';
+import { deleteItemFromStorage, geProductsFromToLocalStorage, saveItemToLocalStorage, saveToLocalStorage } from './localstorage-util';
 
 const PRODCUTS_KEY = "products";
 const NUMBER_OF_ITEMS_IN_PAGE = 5;
 function App() {
   const [products, setProducts] = useState<ProductData[]>([]);
   const firstInit = useRef<boolean>(null);
+  const nextId = useRef<number>(null);
   const [selectedItemId, setSelectedItemId] = useState<number>(-1);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedSortByOption, setSelectedSortByOption] = useState<SortByOption>({ name: "Name", sortType: "name" });
@@ -62,7 +63,7 @@ function App() {
     const hash = window.location.hash;
     const hashArr = hash.split('/');
     if (hashArr[0] === "#" && hashArr[1] === "products" && !isNaN(Number(hashArr[2]))) {
-      const requestedItem: ProductData | undefined = products.find(item => item.id === Number(hashArr[2]));
+      const requestedItem: ProductData | undefined = geProductsFromToLocalStorage(PRODCUTS_KEY).find(item => item.id === Number(hashArr[2]));
       if (requestedItem?.state === "approved") {
         setSelectedItemId(Number(hashArr[2]))
       }
@@ -85,30 +86,63 @@ function App() {
     setHideSortByDown(!hideSortByDown);
   }
   const getNewEmptyItem = (): ProductData => {
-    return { name: "", id: products.length + 1, price: 0, creationDate: new Date(), state: "pending" };
+    return { name: "", id: -2, price: 0, creationDate: new Date(), state: "pending" };
 
   }
   const addItem = () => {
     setCreateNewItem(true);
   }
 
+  const getMaxProductId = (): number => {
+    const products = geProductsFromToLocalStorage(PRODCUTS_KEY);
+    if (products.length === 0) {
+      alert('empty');
+      return 0;
+    }
+    let maxId = 0;
+    for (let i = 0; i < products.length; i++) {
+      if (products[i].id > maxId) {
+        maxId = products[i].id;
+      }
+    }
+    return maxId;
+  }
+
+  const getNextId = (): number => {
+    if (nextId.current) {
+      nextId.current += 1;
+      return nextId.current;
+    }
+
+    nextId.current = getMaxProductId();
+    nextId.current += 1;
+    return nextId.current;
+  }
   const saveItem = (newItem: ProductData): void => {
+    let isNewItem = false;
+    const itemIdx = geProductsFromToLocalStorage(PRODCUTS_KEY).findIndex(item => item.id === newItem.id);
+    if (itemIdx === -1) {
+      isNewItem = true;
+      newItem.id = getNextId();
+      newItem.state = "approved";
+      setCreateNewItem(false);
+    }
+    
     setProducts(prev => {
       const nextState = [...prev];
-      const idx = nextState.findIndex(item => item.id === newItem.id);
-      if (idx === -1) {
-        nextState.push({ ...newItem, state: "approved" });
-        setCreateNewItem(false);
+      if (isNewItem) {
+        nextState.push(newItem);
       } else {
-        nextState[idx].description = newItem.description;
-        nextState[idx].price = newItem.price;
-        nextState[idx].name = newItem.name;
+        nextState[itemIdx].description = newItem.description;
+        nextState[itemIdx].price = newItem.price;
+        nextState[itemIdx].name = newItem.name;
       }
-      saveToLocalStorage(PRODCUTS_KEY, nextState);
       sortBy(selectedSortByOption.sortType, nextState);
       setSelectedItemId(newItem.id);
       return nextState;
     })
+    saveItemToLocalStorage(PRODCUTS_KEY, newItem, isNewItem);
+
   };
 
   const sortBy = (sortType: SortBy, _products: ProductData[] = products): void => {
@@ -171,7 +205,7 @@ function App() {
     }
   }
 
-  const findItemById = (item:ProductData):boolean=>item.id === selectedItemId;
+  const findItemById = (item: ProductData): boolean => item.id === selectedItemId;
   return (
     <div className='store-container' onClick={() => {
       setHideSortByDown(true);
@@ -216,7 +250,7 @@ function App() {
                   if (_idx > - 1) {
                     products[_idx].state = "deleted";
                     const nextState = [...products];
-                    saveToLocalStorage(PRODCUTS_KEY, nextState);
+                    deleteItemFromStorage(PRODCUTS_KEY, item.id);
                     updateCurrentPage(nextState);
                     if (!createNewItem && selectedItemId === item.id) {
                       setFirstValidItemId(nextState);
